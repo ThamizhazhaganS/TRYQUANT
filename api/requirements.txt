@@ -6,4 +6,3 @@ numpy
 pydantic
 python-multipart
 requests
-scikit-learn

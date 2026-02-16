@@ -1,12 +1,67 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import make_pipeline
+# Removed heavy scikit-learn dependency to fit within Vercel Serverless Function limits
+# Implemented lightweight polynomial ridge regression using NumPy
+
+class RidgePoly:
+    def __init__(self, degree=2, alpha=1.0):
+        self.degree = degree
+        self.alpha = alpha
+        self.w = None
+        self.mean_y = 0.0
+
+    def fit(self, X, y):
+        self.mean_y = np.mean(y)
+        # Add bias term and polynomial features (Linear + Squared)
+        X_poly = self._transform(X)
+        n_features = X_poly.shape[1]
+        
+        # Identity matrix for regularization
+        I = np.eye(n_features)
+        I[0, 0] = 0  # Do not regularize the bias term (index 0)
+        
+        try:
+            # Closed-form Ridge Regression: w = (X^T X + alpha I)^-1 X^T y
+            # Using linalg.solve for numerical stability
+            A = X_poly.T @ X_poly + self.alpha * I
+            b = X_poly.T @ y
+            self.w = np.linalg.solve(A, b)
+        except np.linalg.LinAlgError:
+            # Fallback for singular matrix
+            self.w = np.zeros(n_features)
+            self.w[0] = self.mean_y
+
+    def predict(self, X):
+        if self.w is None:
+            return np.full((X.shape[0],), self.mean_y)
+        X_poly = self._transform(X)
+        return X_poly @ self.w
+
+    def score(self, X, y):
+        # R^2 Score
+        y_pred = self.predict(X)
+        u = ((y - y_pred) ** 2).sum()
+        v = ((y - np.mean(y)) ** 2).sum()
+        return 1 - u/v if v != 0 else 0
+
+    def _transform(self, X):
+        # Generate polynomial features: Bias + Linear + Squared
+        # Skipping interaction terms to keep it lightweight while capturing non-linearity
+        n_samples = X.shape[0] if len(X.shape) > 1 else 1
+        X = np.atleast_2d(X)
+        
+        # Bias term (column of 1s)
+        X_poly = np.hstack([np.ones((n_samples, 1)), X])
+        
+        if self.degree > 1:
+            # Add squared terms
+            X_poly = np.hstack([X_poly, X**2])
+            
+        return X_poly
 
 def polynomial_regression(X, y, degree=2):
     try:
-        model = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=1.0))
+        model = RidgePoly(degree=degree, alpha=1.0)
         model.fit(X, y)
         return model
     except:
@@ -126,6 +181,7 @@ def run_prediction_pipeline(df):
     pred_trend = last_close
     conf_trend = 0
     if model_trend:
+        # Use our custom model's predict which handles input shape/expansion
         pred_trend = float(model_trend.predict(df[feature_cols].iloc[-1].values.reshape(1, -1))[0])
         conf_trend = float(model_trend.score(X, y) * 100)
     
