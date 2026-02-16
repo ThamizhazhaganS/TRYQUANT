@@ -264,21 +264,21 @@ async def predict(
 # --- Unified Frontend Serving Logic ---
 
 # Mount static assets (JS, CSS, Images)
-assets_path = os.path.join(FRONTEND_DIST, "assets")
-if os.path.exists(assets_path):
-    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+# assets_path = os.path.join(FRONTEND_DIST, "assets")
+# if os.path.exists(assets_path):
+#     app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
-# Catch-all route to serve the React application
-@app.get("/{full_path:path}")
-async def serve_frontend(request: Request, full_path: str):
-    # Check if the requested path is a file in the dist folder (e.g., favicon)
-    file_path = os.path.join(FRONTEND_DIST, full_path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
+# # Catch-all route to serve the React application
+# @app.get("/{full_path:path}")
+# async def serve_frontend(request: Request, full_path: str):
+#     # Check if the requested path is a file in the dist folder (e.g., favicon)
+#     file_path = os.path.join(FRONTEND_DIST, full_path)
+#     if os.path.isfile(file_path):
+#         return FileResponse(file_path)
     
-    # Fallback to index.html for all other routes (handles React Router)
-    index_path = os.path.join(FRONTEND_DIST, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
+#     # Fallback to index.html for all other routes (handles React Router)
+#     index_path = os.path.join(FRONTEND_DIST, "index.html")
+#     if os.path.exists(index_path):
+#         return FileResponse(index_path)
     
-    return {"error": "Frontend build not found. Run 'npm run build' in the frontend folder."}
+#     return {"error": "Frontend build not found. Run 'npm run build' in the frontend folder."}
