@@ -51,6 +51,7 @@ function App() {
         if (enableLoading) setLoading(true);
         setError(null);
         try {
+            console.log("API_BASE =", API_BASE);
             const response = await axios.get(`${API_BASE}/predict/${ticker}`, {
                 params: {
                     days: mcTimeframe,
