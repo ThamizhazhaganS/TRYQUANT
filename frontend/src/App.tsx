@@ -31,7 +31,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     }
 }
 
-const API_BASE = "https://tryquant.onrender.com/"; // Use relative path since we're serving from the same port
+const API_BASE = import.meta.env.VITE_API_BASE; // Use relative path since we're serving from the same port
 
 function App() {
     const [searchInput, setSearchInput] = useState('');
